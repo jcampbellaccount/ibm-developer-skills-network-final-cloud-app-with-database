@@ -101,41 +101,40 @@ def enroll(request, course_id):
 
     return HttpResponseRedirect(reverse(viewname='onlinecourse:course_details', args=(course.id,)))
 
+
 def submit(request, course_id):
-    user = request.user
-    course = Course.objects.get(pk=course_id)
-    enrollment = Enrollment.objects.get(user=user, course=course)
+    enrollment = Enrollment.objects.get(user=request.user, course=course_id)
     submission = Submission.objects.create(enrollment=enrollment)
-    selected_chocies = extract_answers(request)
-    submission.chocies.set(selected_chocies)
-    return  HttpResponseRedirect(reverse(viewname='onlinecourse:result', args=(course_id, submission.chocies.first().question.lesson.pk, submission.pk)))
+    submitted_answers = extract_answers(request)
+    submission.choices.set(submitted_answers)
+
+    return HttpResponseRedirect(reverse(viewname='onlinecourse:show_exam_result', args=(course_id, submission.pk)))
 
 def extract_answers(request):
-   submitted_anwsers = []
-   for key in request.POST:
-       if key.startswith('choice'):
-           value = request.POST[key]
-           choice_id = int(value)
-           submitted_anwsers.append(choice_id)
-   return submitted_anwsers
+    submitted_anwsers = []
+    for key in request.POST:
+        if key.startswith('choice'):
+            value = request.POST[key]
+            choice_id = int(value)
+            submitted_anwsers.append(choice_id)
+    return submitted_anwsers
 
 def show_exam_result(request, course_id, submission_id):
     context = {}
-    context['submission'] = []
-    all_points = 0
-    score = 0
-    course = Course.objects.get(pk=course_id)
-    submission = Submission.objects.get(pk=submission_id)
+    course = get_object_or_404(Course, pk=course_id)
+    submission = get_object_or_404(Submission, pk=submission_id)
     questions = Question.objects.filter(course=course)
-    for each in questions:
-        all_points += each.grade
-        if each.is_get_score(submission.choices.all()):
-            score += each.grade
+    total_score = 0
+    points = 0
+    for question in questions:
+        points += question.grade
+        if question.is_get_score(submission.choices.all()):
+            total_score += question.grade
     
-    context['grade'] = int(score/all_points * 100)
+    grade = int(total_score/points * 100)
+    context['grade'] = grade
     context['course'] = course
-
+    context['selected_ids'] = submission.choices.all()
     return render(request, 'onlinecourse/exam_result_bootstrap.html', context)
-
 
 

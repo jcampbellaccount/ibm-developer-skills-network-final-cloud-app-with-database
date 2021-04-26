@@ -44,23 +44,23 @@
         <h2>{{ course.name }}</h2>
         <div class="card-columns-vertical">
             {% for lesson in course.lesson_set.all %}
-                <div class="card mt-1">
-                    <div class="card-header"><h5>Lesson {{lesson.order|add:1}}: {{lesson.title}}</h5></div>
-                    <div class="card-body">{{lesson.content}}</div>
-                </div>
+            <div class="card mt-1">
+                <div class="card-header"><h5>Lesson {{lesson.order|add:1}}: {{lesson.title}}</h5></div>
+                <div class="card-body">{{lesson.content}}</div>
+            </div>
             {% endfor %}
         </div>
         {% if user.is_authenticated %}
-            <button data-toggle="collapse" data-target="#exam_{{lesson.id}}" class=" btn-primary btn-block"
-                style="background-color:darkcyan">Start Exam</button>
-
-            <div id="exam_{{lesson.id}}" class="collapse">
-                <form id="questionform" action="{% url 'onlinecourse:submit' course.id lesson.id %}" method="post">
-                    {% for question in lesson.question_set.all %}
-                        <div class="card mt-1">
-                            <div class="card-header"><h5>{{ question.question_text}}</h5></div>
-                            {% csrf_token %}
-                            <div class="form-group">
+        <div class="card mt-1">     
+            <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#lesson_{{lesson.id}}">Start Exam</button>
+            <div id="lesson_{{lesson.id}}" class="collapse">
+                <div class="card-columns-vertical">
+                     <form id="questionform" action="{% url 'onlinecourse:submit' course.id %}" method="post">
+                            {% for question in course.question_set.all %}
+                            <div class="card mt-1">
+                                <div class="card-header"><h5>{{ question.question_text}}</h5></div>
+                                {% csrf_token %}
+                                <div class="form-group">
                                 {% for choice in question.choice_set.all %}
                                     <div class="form-check">
                                         <label class="form-check-label">
@@ -69,13 +69,15 @@
                                                 value="{{choice.id}}">{{ choice.choice_text }}
                                         </label>
                                     </div>
-                                {% endfor %}                                            
+                                    {% endfor %}
+                                </div>
                             </div>
-                        </div>
-                    {% endfor %}
-                    <input class="btn btn-success btn-block" type="submit" value="Submit">
+                             {% endfor %}
+                        <input class="btn btn-success btn-block" type="submit" value="Submit">
                 </form>
+                </div>  
             </div>
+        </div>
         {% endif %}
     </div>
 </body>

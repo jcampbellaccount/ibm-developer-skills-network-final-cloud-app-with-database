@@ -97,6 +97,7 @@ class Enrollment(models.Model):
 
 # Used to persist question content for a course
 class Question(models.Model):
+    course = models.ManyToManyField(Course)
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
     question_text = models.CharField(max_length=600, default="text")
     grade = models.IntegerField(default=0)
@@ -113,6 +114,7 @@ class Question(models.Model):
 # Used to persist choice content for a question
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    # question_id = models.ManyToManyField(Question)
     choice_text = models.CharField(max_length=100, default="text")
     is_correct = models.BooleanField(default=False)
 
@@ -121,4 +123,4 @@ class Choice(models.Model):
 # One choice could belong to multiple submissions
 class Submission(models.Model):
    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE)
-   chocies = models.ManyToManyField(Choice)
+   choices = models.ManyToManyField(Choice)
